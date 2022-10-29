@@ -42,8 +42,11 @@ void revealSpace(int X, int Y, Board board);
 //checks if there are no more unchecked spaces, for ending the game
 bool checkForUnchecked(Board board);
 
-//checks input, acts accordingly
-void checkInput(Board board);
+//checks input for coordinates
+int * inputCoordinates();
+
+//does game actions using input
+void runGameMechanics(Board board);
 
 //prints out grid
 void printBoard(Board board);
@@ -63,7 +66,7 @@ int main()
 
     printBoard(board);
     
-    checkInput(board);
+    runGameMechanics(board);
 }
 
 
@@ -155,7 +158,13 @@ bool checkForUnchecked(Board board){
     return result;
 }
 
-void checkInput(Board board){
+int * inputCoordinates(){
+    int coords[2];
+
+    return coords;
+}
+
+void runGameMechanics(Board board){
     state = gameStart;
     string input;
     int X = UNCHECKED;
