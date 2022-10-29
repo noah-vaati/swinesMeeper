@@ -1,10 +1,5 @@
-/******************************************************************************
-
-                              Online C++ Compiler.
-               Code, Compile, Run and Debug C++ program online.
-Write your code in this editor and press "Run" button to compile and execute it.
-
-*******************************************************************************/
+//Noah Redden
+//SwinesMeeper
 
 #include <iostream>
 #include <stdlib.h>
@@ -28,7 +23,8 @@ struct Board{
 };
 
 //game states
-enum State{gameActive, gameOver, quit};
+enum State{gameActive, gameOver, gameWin, quit};
+State state;
 
 //sets up grid, returns 2D int array
 int ** initGrid(int sizeX, int sizeY);
@@ -41,6 +37,9 @@ int checkForMines(int X, int Y,  Board board);
 
 //reveals how many adjacent mines are on a space by changing the grid
 void revealSpace(int X, int Y, Board board);
+
+//checks if there are no more unchecked spaces, for ending the game
+bool checkForUnchecked(Board board);
 
 //checks input, acts accordingly
 void checkInput(Board board);
@@ -58,6 +57,7 @@ int main()
     board.sizeX = 9;
     board.sizeY = 9;
     board.mines = 10;
+    board.minesLeft = board.mines;
     board.grid = initGrid(board.sizeX, board.sizeY);
     
     fillBoard(board);
@@ -127,7 +127,6 @@ int checkForMines(int X, int Y, Board board){
 
 void revealSpace(int X, int Y, Board board){
     board.grid[X][Y] = checkForMines(X, Y, board);
-    cout << "Reveal : " << X << ", " << Y << "\n";
     //if space has 0 mines adj., reveal mines in adjacent spaces
     if(board.grid[X][Y] == 0){
         for(int i = X-1; i <= X+1; i++){
@@ -136,15 +135,28 @@ void revealSpace(int X, int Y, Board board){
                     if(j >= 0 && j < board.sizeY)
                         if((i!=X || j!=Y) && board.grid[i][j] == UNCHECKED)
                             revealSpace(i, j, board);
+                            
                 }
         }
     }
     
-    printBoard(board);
+    
+}
+
+bool checkForUnchecked(Board board){
+    //should be true if there are no unchecked tiles encountered
+    bool result = true;
+    for(int i = 0; i < board.sizeY && result; i++)
+        for(int j = 0; j < board.sizeX && result; j++){
+            if(board.grid[j][i]==-1){
+                result=false;
+            }
+        }
+    return result;
 }
 
 void checkInput(Board board){
-    State state = gameActive;
+    state = gameActive;
     string input;
     int X = UNCHECKED;
     int Y = UNCHECKED;
@@ -155,7 +167,11 @@ void checkInput(Board board){
     if(input==QUIT)state = quit;
     while(state!=quit){
         if(state==gameOver){
-            //ask to play again
+            cout << "Game Over! You stepped on a mine\n";
+            //TODO: ask to play again
+            state = quit;
+        }else if (state==gameWin){
+            cout << "Winner! \n";
             state = quit;
         }else if(state==gameActive){
             //TODO: Check for numerical inputs
@@ -168,11 +184,22 @@ void checkInput(Board board){
                 
                 revealSpace(X, Y, board);
                 
+                if(checkForUnchecked(board))
+                    state = gameWin;
+                   
+                //check if x and y are a Mine
+                if(board.grid[X][Y]==MINE)
+                    state = gameOver;
+                    
+                printBoard(board);
+                
                 X = UNCHECKED;
                 Y = UNCHECKED;
                 
-                cout << "What are your next coordinates?\n";
-                cin >> input;
+                if(state==gameActive){
+                    cout << "What are your next coordinates?\n";
+                    cin >> input;
+                }
             } 
         }
         if(input==QUIT)state = quit;
@@ -181,14 +208,23 @@ void checkInput(Board board){
 }
 
 void printBoard(Board board){
-    cout << "SizeX: " << board.sizeX << ", SizeY: " << board.sizeY << '\n';
+    cout << "Total Mines: " << board.mines << '\n';
+    //print out legend
+    cout << "-*-";
+    for(int j = 0; j < board.sizeX; j++)
+        cout << "|" << j << "|";
+    cout << '\n';
     //prints board with Y as vertical, X as horizontal
     for(int i = 0; i < board.sizeY; i++){
+        cout << "=" << i << "=";
         for(int j = 0; j < board.sizeX; j++){
             if(board.grid[j][i]==MINE)
-                cout<<"[!]";
+                if(state!=gameActive)
+                    cout<<"[!]";
+                else
+                    cout<<"[~]";
             else if(board.grid[j][i]==UNCHECKED)
-                cout<<"[*]";
+                cout<<"[~]";
             else if(board.grid[j][i]==0)
                 cout<<"[ ]";
             else
