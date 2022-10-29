@@ -23,14 +23,15 @@ struct Board{
 };
 
 //game states
-enum State{gameActive, gameOver, gameWin, quit};
+enum State{gameStart, gameActive, gameOver, gameWin, quit};
 State state;
 
 //sets up grid, returns 2D int array
 int ** initGrid(int sizeX, int sizeY);
 
 //fills board grid with mines
-void fillBoard(Board board);
+//makes sure that (X, Y) does not have a mine
+void fillBoard(int X, int Y, Board board);
 
 //checks surrounding spaces for mines
 int checkForMines(int X, int Y,  Board board);
@@ -59,8 +60,6 @@ int main()
     board.mines = 10;
     board.minesLeft = board.mines;
     board.grid = initGrid(board.sizeX, board.sizeY);
-    
-    fillBoard(board);
 
     printBoard(board);
     
@@ -80,8 +79,8 @@ int ** initGrid(int sizeX, int sizeY){
     return grid;
 }
 
-void fillBoard(Board board){
-    //TODO: Make it so first move does not result in Game Over. May need to fill board on first move.
+void fillBoard(int X, int Y, Board board){
+    
     //coordinates for mines
     int minesX;
     int minesY;
@@ -93,7 +92,8 @@ void fillBoard(Board board){
         int minesY = UNCHECKED;
         
         //assigns random coordinates to mines. tries again if coordinates already have a mine.
-        while((minesX == UNCHECKED || minesY == UNCHECKED) || board.grid[minesX][minesY] == MINE){
+        //also tries again if random coordinates are (X, Y). done so first move of the game at (X, Y) is not a loss.
+        while((minesX == UNCHECKED || minesY == UNCHECKED) || board.grid[minesX][minesY] == MINE || (minesX == X && minesY == Y)){
             minesX = rand() % board.sizeX;
             minesY = rand() % board.sizeY;
         }
@@ -156,7 +156,7 @@ bool checkForUnchecked(Board board){
 }
 
 void checkInput(Board board){
-    state = gameActive;
+    state = gameStart;
     string input;
     int X = UNCHECKED;
     int Y = UNCHECKED;
@@ -173,7 +173,7 @@ void checkInput(Board board){
         }else if (state==gameWin){
             cout << "Winner! \n";
             state = quit;
-        }else if(state==gameActive){
+        }else if(state==gameActive||state==gameStart){
             //TODO: Check for numerical inputs
             if(X==UNCHECKED && Y==UNCHECKED){
                 //get coordinates from input
@@ -181,6 +181,11 @@ void checkInput(Board board){
                 X = stoi(input);
                 cin >> input;
                 Y = stoi(input);
+
+                if(state==gameStart){
+                    fillBoard(X, Y, board);
+                    state = gameActive;
+                }
                 
                 revealSpace(X, Y, board);
                 
