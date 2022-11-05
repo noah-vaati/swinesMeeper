@@ -22,9 +22,19 @@ struct Board{
     int **grid;
 };
 
+//coordinates, used to return two values for board position
+struct Coordinates{
+    int X;
+    int Y;
+};
+
 //game states
 enum State{gameStart, gameActive, gameOver, gameWin, quit};
 State state;
+
+//modes
+enum Mode{CLI, GUI, bot};
+Mode mode;
 
 //sets up grid, returns 2D int array
 int ** initGrid(int sizeX, int sizeY);
@@ -43,7 +53,7 @@ void revealSpace(int X, int Y, Board board);
 bool checkForUnchecked(Board board);
 
 //checks input for coordinates
-int * inputCoordinates();
+Coordinates inputCoordinates();
 
 //does game actions using input
 void runGameMechanics(Board board);
@@ -53,6 +63,8 @@ void printBoard(Board board);
 
 int main()
 {
+    mode = CLI; 
+
     //initialize random number generator using time as seed
     //srand(time(NULL));
     
@@ -158,8 +170,37 @@ bool checkForUnchecked(Board board){
     return result;
 }
 
-int * inputCoordinates(){
-    int coords[2];
+Coordinates inputCoordinates(){
+    Coordinates coords;
+
+    coords.X = UNCHECKED;
+    coords.Y = UNCHECKED;
+    string input;
+
+    //command line interface mode
+    if(mode==CLI){
+        if(state==gameStart)
+            cout << "Please give coordinates separated by a space (Ex. 1 2).\nYou may quit by typing 'quit'\n";
+        else
+            cout << "What are your next coordinates?\n";
+    
+        cin >> input;
+
+        //check for quit input
+        if(input==QUIT){
+            state = quit;
+            return coords;
+        }
+
+        //TODO: Check for numerical inputs
+        if(coords.X==UNCHECKED && coords.Y==UNCHECKED){
+            //get coordinates from input
+            //TODO: check that they are in bounds
+            coords.X = stoi(input);
+            cin >> input;
+            coords.Y = stoi(input);
+        }
+    }
 
     return coords;
 }
@@ -169,11 +210,8 @@ void runGameMechanics(Board board){
     string input;
     int X = UNCHECKED;
     int Y = UNCHECKED;
-    
-    cout << "Please give coordinates separated by a space (Ex. 1 2).\nYou may quit by typing 'quit'\n";
-    
-    cin >> input;
-    if(input==QUIT)state = quit;
+
+    //mechanics should loop until state is set to quit by user input
     while(state!=quit){
         if(state==gameOver){
             cout << "Game Over! You stepped on a mine\n";
@@ -186,10 +224,13 @@ void runGameMechanics(Board board){
             //TODO: Check for numerical inputs
             if(X==UNCHECKED && Y==UNCHECKED){
                 //get coordinates from input
-                //TODO: check that they are in bounds
-                X = stoi(input);
-                cin >> input;
-                Y = stoi(input);
+                Coordinates coords = inputCoordinates();
+
+                //quit game if quit input given
+                if(state==quit)break;
+
+                X = coords.X;
+                Y = coords.Y;
 
                 if(state==gameStart){
                     fillBoard(X, Y, board);
@@ -210,10 +251,6 @@ void runGameMechanics(Board board){
                 X = UNCHECKED;
                 Y = UNCHECKED;
                 
-                if(state==gameActive){
-                    cout << "What are your next coordinates?\n";
-                    cin >> input;
-                }
             } 
         }
         if(input==QUIT)state = quit;
@@ -236,9 +273,9 @@ void printBoard(Board board){
                 if(state!=gameActive)
                     cout<<"[!]";
                 else
-                    cout<<"[~]";
+                    cout<<"[?]";
             else if(board.grid[j][i]==UNCHECKED)
-                cout<<"[~]";
+                cout<<"[?]";
             else if(board.grid[j][i]==0)
                 cout<<"[ ]";
             else
