@@ -58,6 +58,9 @@ Coordinates inputCoordinates();
 //does game actions using input
 void runGameMechanics(Board board);
 
+//checks for input at game end to see if a new gamme starts or program ends.
+void quitOrContinue(Board board);
+
 //prints out grid
 void printBoard(Board board);
 
@@ -75,8 +78,6 @@ int main()
     board.mines = 10;
     board.minesLeft = board.mines;
     board.grid = initGrid(board.sizeX, board.sizeY);
-
-    printBoard(board);
     
     runGameMechanics(board);
 }
@@ -213,16 +214,19 @@ void runGameMechanics(Board board){
 
     //mechanics should loop until state is set to quit by user input
     while(state!=quit){
+        if(state==gameStart)board.grid = initGrid(board.sizeX, board.sizeY);
+        printBoard(board);
         if(state==gameOver){
             cout << "Game Over! You stepped on a mine\n";
             //TODO: ask to play again
-            state = quit;
+            quitOrContinue(board);
         }else if (state==gameWin){
             cout << "Winner! \n";
-            state = quit;
+            quitOrContinue(board);
         }else if(state==gameActive||state==gameStart){
             //TODO: Check for numerical inputs
             if(X==UNCHECKED && Y==UNCHECKED){
+
                 //get coordinates from input
                 Coordinates coords = inputCoordinates();
 
@@ -233,6 +237,8 @@ void runGameMechanics(Board board){
                 Y = coords.Y;
 
                 if(state==gameStart){
+                    cout << "filling...\n";
+                    board.grid = initGrid(board.sizeX, board.sizeY);
                     fillBoard(X, Y, board);
                     state = gameActive;
                 }
@@ -246,7 +252,7 @@ void runGameMechanics(Board board){
                 if(board.grid[X][Y]==MINE)
                     state = gameOver;
                     
-                printBoard(board);
+                
                 
                 X = UNCHECKED;
                 Y = UNCHECKED;
@@ -256,6 +262,24 @@ void runGameMechanics(Board board){
         if(input==QUIT)state = quit;
     }
     cout << "Quitting program...\n";
+}
+
+void quitOrContinue(Board board){
+    cout << "Type 'quit' to Quit, or input anything else for a new game\n";
+
+    string input;
+
+    cin >> input;
+
+    if(input==QUIT){
+        //sets state to quit, lets game mechanics function exit program
+        state = quit;
+    }else{
+        //sets state to gameStart
+        state = gameStart;
+    }
+
+   
 }
 
 void printBoard(Board board){
