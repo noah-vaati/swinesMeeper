@@ -12,6 +12,7 @@ using namespace std;
 #define UNCHECKED -1
 #define MINE -2
 #define QUIT "quit"
+#define HELP "help"
 
 //game board. contains grid to be filled with mines.
 struct Board{
@@ -67,19 +68,44 @@ bool inBounds(Coordinates coords, Board board);
 //prints out grid
 void printBoard(Board board);
 
-int main()
+int main(int argc, char *argv[])
 {
     mode = CLI; 
 
     //initialize random number generator using time as seed
-    //srand(time(NULL));
-    
-    //TODO: Command Line arguments for game parameters
+    srand(time(NULL));
+
     Board board;
-    board.sizeX = 9;
-    board.sizeY = 9;
-    board.mines = 10;
-    board.minesLeft = board.mines;
+
+    //command line args
+    if(argc==1){
+        board.sizeX = 9;
+        board.sizeY = 9;
+        board.mines = 10;
+        board.minesLeft = board.mines;
+    }else if(argc==2 && argv[1]==HELP){
+        cout << "Please run using the following arguments:\n./main (width of board) (height of board) (number of mines)\n";
+
+        return 0;
+    
+    }else if(argc==4){
+        try{
+            board.sizeX = stoi(argv[1]);
+            board.sizeY = stoi(argv[2]);
+            board.mines = stoi(argv[3]);
+            board.minesLeft = board.mines;
+        }catch (const invalid_argument){
+            cout << "Arguments Invalid\nPlease run using the following arguments:\n./main (width of board) (height of board) (number of mines)\n";
+
+            return 0;
+        }
+    }else{
+        cout << "Please run using the following arguments:\n./main (width of board) (height of board) (number of mines)\n";
+
+        return 0;
+    }
+    
+    
     board.grid = initGrid(board.sizeX, board.sizeY);
     
     runGameMechanics(board);
@@ -226,7 +252,6 @@ void runGameMechanics(Board board){
 
         if(state==gameOver){
             cout << "Game Over! You stepped on a mine\n";
-            //TODO: ask to play again
             quitOrContinue(board);
         }else if (state==gameWin){
             cout << "Winner! \n";
