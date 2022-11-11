@@ -329,25 +329,32 @@ bool inBounds(Coordinates coords, Board board){
 void printBoard(Board board){
     cout << "Total Mines: " << board.mines << '\n';
     //print out legend
-    cout << "-*-";
+    cout << " -*- ";
     for(int j = 0; j < board.sizeX; j++)
-        cout << "|" << j << "|";
+        if(j<10)
+            cout << "| " << j << " |";
+        else
+            cout << "| " << j << "|";
     cout << '\n';
     //prints board with Y as vertical, X as horizontal
     for(int i = 0; i < board.sizeY; i++){
-        cout << "=" << i << "=";
+        if(i<10)
+            cout << "= " << i << " =";
+        else
+            cout << "= " << i << "=";
+        
         for(int j = 0; j < board.sizeX; j++){
             if(board.grid[j][i]==MINE)
                 if(state!=gameActive)
-                    cout<<"[!]";
+                    cout<<"[ ! ]";
                 else
-                    cout<<"[?]";
+                    cout<<"[=?=]";
             else if(board.grid[j][i]==UNCHECKED)
-                cout<<"[?]";
+                cout<<"[=?=]";
             else if(board.grid[j][i]==0)
-                cout<<"[ ]";
+                cout<<"[   ]";
             else
-                cout<<"["<<board.grid[j][i]<<"]";
+                cout<<"[ "<<board.grid[j][i]<<" ]";
         }
         cout<<'\n';
     }
