@@ -61,6 +61,9 @@ void runGameMechanics(Board board);
 //checks for input at game end to see if a new gamme starts or program ends.
 void quitOrContinue(Board board);
 
+//checks that a coordinate is in bounds
+bool inBounds(Coordinates coords, Board board);
+
 //prints out grid
 void printBoard(Board board);
 
@@ -193,14 +196,16 @@ Coordinates inputCoordinates(){
             return coords;
         }
 
-        //TODO: Check for numerical inputs
-        if(coords.X==UNCHECKED && coords.Y==UNCHECKED){
-            //get coordinates from input
-            //TODO: check that they are in bounds
+        //get coordinates from input
+        try{
             coords.X = stoi(input);
             cin >> input;
             coords.Y = stoi(input);
+        }catch (const invalid_argument){
+            //iterates cin during an exception, but only on the X coord
+            if(coords.X == UNCHECKED) cin >> input;
         }
+        
     }
 
     return coords;
@@ -212,10 +217,13 @@ void runGameMechanics(Board board){
     int X = UNCHECKED;
     int Y = UNCHECKED;
 
+    printBoard(board);
+
     //mechanics should loop until state is set to quit by user input
     while(state!=quit){
+
         if(state==gameStart)board.grid = initGrid(board.sizeX, board.sizeY);
-        printBoard(board);
+
         if(state==gameOver){
             cout << "Game Over! You stepped on a mine\n";
             //TODO: ask to play again
@@ -224,35 +232,41 @@ void runGameMechanics(Board board){
             cout << "Winner! \n";
             quitOrContinue(board);
         }else if(state==gameActive||state==gameStart){
-            //TODO: Check for numerical inputs
             if(X==UNCHECKED && Y==UNCHECKED){
 
                 //get coordinates from input
-                Coordinates coords = inputCoordinates();
+                Coordinates coords;
+                coords.X = UNCHECKED;
+                coords.Y = UNCHECKED;
+
+                coords = inputCoordinates();
 
                 //quit game if quit input given
                 if(state==quit)break;
 
-                X = coords.X;
-                Y = coords.Y;
+                if ((coords.X == UNCHECKED || coords.Y == UNCHECKED) || !inBounds(coords, board)) 
+                    cout << "Invalid Entry. Please try again\n";
+                else{
+                    X = coords.X;
+                    Y = coords.Y;
 
-                if(state==gameStart){
-                    cout << "filling...\n";
-                    board.grid = initGrid(board.sizeX, board.sizeY);
-                    fillBoard(X, Y, board);
-                    state = gameActive;
-                }
-                
-                revealSpace(X, Y, board);
-                
-                if(checkForUnchecked(board))
-                    state = gameWin;
-                   
-                //check if x and y are a Mine
-                if(board.grid[X][Y]==MINE)
-                    state = gameOver;
+                    if(state==gameStart){
+                        board.grid = initGrid(board.sizeX, board.sizeY);
+                        fillBoard(X, Y, board);
+                        state = gameActive;
+                    }
                     
-                
+                    revealSpace(X, Y, board);
+                    
+                    if(checkForUnchecked(board))
+                        state = gameWin;
+                    
+                    //check if x and y are a Mine
+                    if(board.grid[X][Y]==MINE)
+                        state = gameOver;
+                        
+                    printBoard(board);
+                }
                 
                 X = UNCHECKED;
                 Y = UNCHECKED;
@@ -280,6 +294,11 @@ void quitOrContinue(Board board){
     }
 
    
+}
+
+bool inBounds(Coordinates coords, Board board){
+    return coords.X >= 0 && coords.X < board.sizeX &&
+        coords.Y >= 0 && coords.Y < board.sizeY;
 }
 
 void printBoard(Board board){
