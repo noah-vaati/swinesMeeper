@@ -243,12 +243,15 @@ void runGameMechanics(Board board){
     int X = UNCHECKED;
     int Y = UNCHECKED;
 
-    printBoard(board);
 
     //mechanics should loop until state is set to quit by user input
     while(state!=quit){
 
-        if(state==gameStart)board.grid = initGrid(board.sizeX, board.sizeY);
+        if(state==gameStart){
+            board.grid = initGrid(board.sizeX, board.sizeY);
+
+            printBoard(board);
+        }
 
         if(state==gameOver){
             cout << "Game Over! You stepped on a mine\n";
@@ -304,7 +307,7 @@ void runGameMechanics(Board board){
 }
 
 void quitOrContinue(Board board){
-    cout << "Type 'quit' to Quit, or input anything else for a new game\n";
+    cout << "Type 'quit' to Quit, or type 'continue' for a new game\n";
 
     string input;
 
